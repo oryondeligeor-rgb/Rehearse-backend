@@ -41,22 +41,27 @@ model PasswordResetToken {
 }
 
 model Script {
-  id            String   @id @default(cuid())
-  title         String
-  author        String
-  pageCount     Int
-  thumbnailUrl  String
-  category      String
-  genre         String
-  length        String
-  era           String
-  durationLabel String
-  description   String
-  sceneId       String
-  sceneTitle    String
-  previewText   String
-  trendingScore Float    @default(0)
-  createdAt     DateTime @default(now())
+  id               String   @id @default(cuid())
+  title            String
+  author           String
+  pageCount        Int
+  sceneCount       Int      @default(1)
+  thumbnailUrl     String
+  category         String
+  genre            String
+  length           String
+  era              String
+  durationLabel    String
+  description      String
+  sceneId          String
+  sceneTitle       String
+  previewText      String
+  trendingScore    Float    @default(0)
+  // Provenance / public-domain verification
+  sourceName       String   @default("")
+  sourceUrl        String   @default("")
+  verificationNote String   @default("")
+  createdAt        DateTime @default(now())
 
   savedBy SavedScript[]
 }

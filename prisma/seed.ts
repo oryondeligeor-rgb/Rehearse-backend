@@ -1,411 +1,104 @@
 import 'dotenv/config';
 import prisma from '../src/lib/prisma';
+import provenanceData from './public_domain_scripts_provenance.json';
 
-const scripts = [
-  {
-    title: 'A Streetcar Named Desire',
-    author: 'Tennessee Williams',
-    pageCount: 107,
-    thumbnailUrl: 'https://picsum.photos/seed/streetcar/300/400',
-    category: 'Stage',
-    genre: 'Drama',
-    length: 'Long',
-    era: 'Classic',
-    durationLabel: '2h 30min',
-    description: 'Blanche DuBois arrives at the New Orleans apartment of her sister Stella and her brutish husband Stanley Kowalski.',
-    sceneId: 'streetcar-scene-3',
-    sceneTitle: 'Scene 3: The Poker Night',
-    previewText: 'STANLEY: Hey! Hey, Stella!\nSTELLA: I want to go away, I want to go away!\nSTANLEY: Hiyah, Eunice!\n',
-    trendingScore: 92,
-  },
-  {
-    title: 'The Shawshank Redemption',
-    author: 'Frank Darabont',
-    pageCount: 115,
-    thumbnailUrl: 'https://picsum.photos/seed/shawshank/300/400',
-    category: 'Film',
-    genre: 'Drama',
-    length: 'Long',
-    era: '90s',
-    durationLabel: '2h 22min',
-    description: 'Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.',
-    sceneId: 'shawshank-rooftop',
-    sceneTitle: 'The Rooftop',
-    previewText: 'RED (V.O.): I have no idea to this day what those two Italian ladies were singing about. Truth is, I don\'t want to know...',
-    trendingScore: 98,
-  },
-  {
-    title: 'Pulp Fiction',
-    author: 'Quentin Tarantino',
-    pageCount: 168,
-    thumbnailUrl: 'https://picsum.photos/seed/pulpfiction/300/400',
-    category: 'Film',
-    genre: 'Thriller',
-    length: 'Long',
-    era: '90s',
-    durationLabel: '2h 34min',
-    description: 'The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.',
-    sceneId: 'pulp-diner',
-    sceneTitle: 'The Diner',
-    previewText: 'PUMPKIN: I love you, Honey Bunny.\nHONEY BUNNY: I love you, Pumpkin.\nPUMPKIN: Okay, everybody be cool, this is a robbery!\n',
-    trendingScore: 96,
-  },
-  {
-    title: 'When Harry Met Sally',
-    author: 'Nora Ephron',
-    pageCount: 98,
-    thumbnailUrl: 'https://picsum.photos/seed/harrysally/300/400',
-    category: 'Film',
-    genre: 'Romance',
-    length: 'Medium',
-    era: '80s',
-    durationLabel: '1h 36min',
-    description: 'Harry and Sally have known each other for years, and are very good friends, but they fear sex would ruin the friendship.',
-    sceneId: 'harrysally-deli',
-    sceneTitle: 'Katz\'s Deli',
-    previewText: 'HARRY: I came here tonight because when you realize you want to spend the rest of your life with somebody, you want the rest of your life to start as soon as possible.',
-    trendingScore: 88,
-  },
-  {
-    title: 'Hamlet',
-    author: 'William Shakespeare',
-    pageCount: 132,
-    thumbnailUrl: 'https://picsum.photos/seed/hamlet/300/400',
-    category: 'Stage',
-    genre: 'Drama',
-    length: 'Long',
-    era: 'Classic',
-    durationLabel: '3h 00min',
-    description: 'Prince Hamlet seeks revenge against his uncle Claudius, who has murdered his father, stolen the throne, and taken his mother as a wife.',
-    sceneId: 'hamlet-act3-sc1',
-    sceneTitle: 'Act III, Scene 1',
-    previewText: 'HAMLET: To be, or not to be, that is the question:\nWhether \'tis nobler in the mind to suffer\nThe slings and arrows of outrageous fortune...',
-    trendingScore: 99,
-  },
-  {
-    title: 'Good Will Hunting',
-    author: 'Matt Damon & Ben Affleck',
-    pageCount: 124,
-    thumbnailUrl: 'https://picsum.photos/seed/goodwill/300/400',
-    category: 'Film',
-    genre: 'Drama',
-    length: 'Long',
-    era: '90s',
-    durationLabel: '2h 06min',
-    description: 'Will Hunting, a janitor at MIT, has a gift for mathematics but needs help from a psychologist to find direction in his life.',
-    sceneId: 'goodwill-park-bench',
-    sceneTitle: 'Park Bench',
-    previewText: 'SEAN: It\'s not your fault.\nWILL: Yeah, I know that.\nSEAN: It\'s not your fault.\nWILL: Don\'t mess with me.\n',
-    trendingScore: 94,
-  },
-  {
-    title: 'Moonlight',
-    author: 'Barry Jenkins',
-    pageCount: 92,
-    thumbnailUrl: 'https://picsum.photos/seed/moonlight/300/400',
-    category: 'Film',
-    genre: 'Drama',
-    length: 'Medium',
-    era: 'Contemporary',
-    durationLabel: '1h 51min',
-    description: 'A young African-American man grapples with his identity and sexuality while experiencing the rough neighborhood and drug world of Miami.',
-    sceneId: 'moonlight-diner',
-    sceneTitle: 'Kevin\'s Diner',
-    previewText: 'CHIRON: You\'re the only person that\'s ever touched me... I haven\'t really touched anyone since.\nKEVIN: What?\n',
-    trendingScore: 91,
-  },
-  {
-    title: 'The Office – Pilot',
-    author: 'Ricky Gervais & Stephen Merchant',
-    pageCount: 44,
-    thumbnailUrl: 'https://picsum.photos/seed/theoffice/300/400',
-    category: 'TV',
-    genre: 'Comedy',
-    length: 'Short',
-    era: 'Contemporary',
-    durationLabel: '44min',
-    description: 'The staff of the Scranton, Pennsylvania branch of the Dunder Mifflin Paper Company are introduced.',
-    sceneId: 'office-pilot-intro',
-    sceneTitle: 'Introduction',
-    previewText: 'MICHAEL: My proudest moment here was not when I increased profits by 17%, or when I cut expenses without losing a single employee. No, no, no, no, no...',
-    trendingScore: 85,
-  },
-  {
-    title: 'Juno',
-    author: 'Diablo Cody',
-    pageCount: 101,
-    thumbnailUrl: 'https://picsum.photos/seed/juno/300/400',
-    category: 'Film',
-    genre: 'Comedy',
-    length: 'Medium',
-    era: 'Contemporary',
-    durationLabel: '1h 36min',
-    description: 'Faced with an unplanned pregnancy, an offbeat young woman makes an unusual decision regarding her unborn child.',
-    sceneId: 'juno-drugstore',
-    sceneTitle: 'Drugstore',
-    previewText: 'JUNO: That\'s a mini-Bluetooth. You don\'t need a surgeon general\'s warning for that, do you?\nROBIE: No, we just use them for...',
-    trendingScore: 80,
-  },
-  {
-    title: 'Marriage Story',
-    author: 'Noah Baumbach',
-    pageCount: 111,
-    thumbnailUrl: 'https://picsum.photos/seed/marriagestory/300/400',
-    category: 'Film',
-    genre: 'Drama',
-    length: 'Long',
-    era: 'Contemporary',
-    durationLabel: '2h 17min',
-    description: 'A stage director and his actor wife struggle through a grueling, coast-to-coast divorce that pushes them both to their personal and professional extremes.',
-    sceneId: 'marriagestory-argument',
-    sceneTitle: 'The Argument',
-    previewText: 'CHARLIE: You are not some perfect mother! You are a good mother but you make everything about you!\nNICOLE: That\'s incredible coming from you!\n',
-    trendingScore: 89,
-  },
-  {
-    title: 'Fleabag – Series 2, Episode 1',
-    author: 'Phoebe Waller-Bridge',
-    pageCount: 50,
-    thumbnailUrl: 'https://picsum.photos/seed/fleabag/300/400',
-    category: 'TV',
-    genre: 'Comedy',
-    length: 'Short',
-    era: 'Contemporary',
-    durationLabel: '27min',
-    description: 'Fleabag navigates family dinner and an unexpected attraction to a Priest.',
-    sceneId: 'fleabag-s2e1-restaurant',
-    sceneTitle: 'The Restaurant',
-    previewText: 'FLEABAG: (to camera) This is a bad idea.\nPRIEST: Are you talking to someone?\nFLEABAG: No.\n',
-    trendingScore: 93,
-  },
-  {
-    title: 'Chinatown',
-    author: 'Robert Towne',
-    pageCount: 122,
-    thumbnailUrl: 'https://picsum.photos/seed/chinatown/300/400',
-    category: 'Film',
-    genre: 'Mystery',
-    length: 'Long',
-    era: 'Classic',
-    durationLabel: '2h 10min',
-    description: 'A private detective hired to expose an adulterer finds himself caught up in a web of deceit, corruption, and murder.',
-    sceneId: 'chinatown-climax',
-    sceneTitle: 'Evelyn\'s Confession',
-    previewText: 'JAKE: Who is she? Your daughter or your sister?\nEVELYN: She\'s my sister. She\'s my daughter.\n',
-    trendingScore: 90,
-  },
-  {
-    title: 'The Witches of Eastwick',
-    author: 'Michael Cristofer',
-    pageCount: 110,
-    thumbnailUrl: 'https://picsum.photos/seed/witches/300/400',
-    category: 'Film',
-    genre: 'Comedy',
-    length: 'Long',
-    era: '80s',
-    durationLabel: '1h 58min',
-    description: 'Three single women in a small town are charmed by a mysterious and flamboyant newcomer who is actually the devil himself.',
-    sceneId: 'witches-church',
-    sceneTitle: 'The Church Scene',
-    previewText: 'DARYL: What exactly is a witch? Well, a witch is somebody that makes things happen. Somebody that changes the world around them by the force of their... personality.',
-    trendingScore: 72,
-  },
-  {
-    title: 'Booksmart',
-    author: 'Emily Halpern & Sarah Haskins',
-    pageCount: 97,
-    thumbnailUrl: 'https://picsum.photos/seed/booksmart/300/400',
-    category: 'Film',
-    genre: 'Comedy',
-    length: 'Medium',
-    era: 'Contemporary',
-    durationLabel: '1h 42min',
-    description: 'On the eve of their high-school graduation, two academic superstars and best friends realize they should have worked less and played more.',
-    sceneId: 'booksmart-bathroom',
-    sceneTitle: 'Bathroom Confrontation',
-    previewText: 'MOLLY: We are not the girls that people forgot about. We accomplished things.\nAMY: Molly...\nMOLLY: We did things!\n',
-    trendingScore: 82,
-  },
-  {
-    title: 'Casablanca',
-    author: 'Julius J. Epstein & Philip G. Epstein',
-    pageCount: 94,
-    thumbnailUrl: 'https://picsum.photos/seed/casablanca/300/400',
-    category: 'Film',
-    genre: 'Romance',
-    length: 'Medium',
-    era: 'Classic',
-    durationLabel: '1h 42min',
-    description: 'A cynical expatriate American cafe owner struggles to decide whether or not to help his former lover and her fugitive husband escape the Nazis in French Morocco.',
-    sceneId: 'casablanca-farewell',
-    sceneTitle: 'Airport Farewell',
-    previewText: 'RICK: If that plane leaves the ground and you\'re not with him, you\'ll regret it. Maybe not today, maybe not tomorrow, but soon and for the rest of your life.',
-    trendingScore: 97,
-  },
-  {
-    title: 'Normal People',
-    author: 'Sally Rooney & Alice Birch',
-    pageCount: 55,
-    thumbnailUrl: 'https://picsum.photos/seed/normalpeople/300/400',
-    category: 'TV',
-    genre: 'Romance',
-    length: 'Short',
-    era: 'Contemporary',
-    durationLabel: '30min',
-    description: 'Follows Connell and Marianne through their complicated relationship from high school to university.',
-    sceneId: 'normalpeople-ep1-kitchen',
-    sceneTitle: 'Marianne\'s Kitchen',
-    previewText: 'CONNELL: You know, you\'re not like you are in school.\nMARIANNE: In school you don\'t talk to me.\nCONNELL: I know. That\'s on me.\n',
-    trendingScore: 87,
-  },
-  {
-    title: 'Parasite',
-    author: 'Bong Joon-ho & Han Jin-won',
-    pageCount: 135,
-    thumbnailUrl: 'https://picsum.photos/seed/parasite/300/400',
-    category: 'Film',
-    genre: 'Thriller',
-    length: 'Long',
-    era: 'Contemporary',
-    durationLabel: '2h 12min',
-    description: 'Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.',
-    sceneId: 'parasite-basement',
-    sceneTitle: 'The Basement',
-    previewText: 'MR. PARK: You know what kind of line is never crossed?\nMRS. PARK: What line?\nMR. PARK: The line of respect.\n',
-    trendingScore: 95,
-  },
-  {
-    title: 'Waiting for Godot',
-    author: 'Samuel Beckett',
-    pageCount: 88,
-    thumbnailUrl: 'https://picsum.photos/seed/godot/300/400',
-    category: 'Stage',
-    genre: 'Drama',
-    length: 'Medium',
-    era: 'Classic',
-    durationLabel: '2h 00min',
-    description: 'Two men, Vladimir and Estragon, wait for someone named Godot who never arrives, and in the meantime, they talk.',
-    sceneId: 'godot-act1-tree',
-    sceneTitle: 'Act 1: By the Tree',
-    previewText: 'ESTRAGON: Nothing to be done.\nVLADIMIR: I\'m beginning to come round to that opinion. All my life I\'ve tried to put it from me, saying Vladimir, be reasonable...',
-    trendingScore: 76,
-  },
-  {
-    title: 'Brooklyn Nine-Nine – Pilot',
-    author: 'Michael Schur & Dan Goor',
-    pageCount: 42,
-    thumbnailUrl: 'https://picsum.photos/seed/b99/300/400',
-    category: 'TV',
-    genre: 'Comedy',
-    length: 'Short',
-    era: 'Contemporary',
-    durationLabel: '22min',
-    description: 'The new, serious commanding officer of the 99th precinct clashes with the precinct\'s laid-back, immature detective.',
-    sceneId: 'b99-pilot-bullpen',
-    sceneTitle: 'The Bullpen',
-    previewText: 'PERALTA: Oh, I\'m sorry, did I offend you, sir? Because I just collared a murder suspect with a groin kick.\nHOLT: Your report is late.\n',
-    trendingScore: 84,
-  },
-  {
-    title: 'Frances Ha',
-    author: 'Noah Baumbach & Greta Gerwig',
-    pageCount: 86,
-    thumbnailUrl: 'https://picsum.photos/seed/francesha/300/400',
-    category: 'Film',
-    genre: 'Comedy',
-    length: 'Medium',
-    era: 'Contemporary',
-    durationLabel: '1h 26min',
-    description: 'A story of a woman who doesn\'t have an apartment, almost has a boyfriend, and just wants to dance.',
-    sceneId: 'francesha-street-run',
-    sceneTitle: 'Running Through the Street',
-    previewText: 'FRANCES: I\'m so embarrassed. I\'m not a real person yet.\nSOPHIE: You\'re a real person.\nFRANCES: No, I\'m not.\n',
-    trendingScore: 77,
-  },
-  {
-    title: 'Knives Out',
-    author: 'Rian Johnson',
-    pageCount: 120,
-    thumbnailUrl: 'https://picsum.photos/seed/knivesout/300/400',
-    category: 'Film',
-    genre: 'Mystery',
-    length: 'Long',
-    era: 'Contemporary',
-    durationLabel: '2h 10min',
-    description: 'A detective investigates the death of a patriarch of an eccentric, combative family.',
-    sceneId: 'knivesout-interview',
-    sceneTitle: 'The Interview',
-    previewText: 'BENOIT: I suspect foul play. I have eliminated no suspects.\nRansom: That\'s one hell of a thesis, Foghorn Leghorn.\n',
-    trendingScore: 91,
-  },
-  {
-    title: 'The Hours',
-    author: 'David Hare',
-    pageCount: 108,
-    thumbnailUrl: 'https://picsum.photos/seed/thehours/300/400',
-    category: 'Film',
-    genre: 'Drama',
-    length: 'Long',
-    era: 'Contemporary',
-    durationLabel: '1h 54min',
-    description: 'The lives of three women in different eras are interconnected through Virginia Woolf\'s novel Mrs. Dalloway.',
-    sceneId: 'thehours-virginia-garden',
-    sceneTitle: 'Virginia\'s Garden',
-    previewText: 'VIRGINIA: You cannot find peace by avoiding life, Leonard.\nLEONARD: I love you.\nVIRGINIA: Then you have to let me live.\n',
-    trendingScore: 83,
-  },
-  {
-    title: 'Succession – S1E1',
-    author: 'Jesse Armstrong',
-    pageCount: 52,
-    thumbnailUrl: 'https://picsum.photos/seed/succession/300/400',
-    category: 'TV',
-    genre: 'Drama',
-    length: 'Short',
-    era: 'Contemporary',
-    durationLabel: '58min',
-    description: 'The Roy family is known for controlling the biggest media and entertainment company in the world. But the company\'s future is in question.',
-    sceneId: 'succession-s1e1-boardroom',
-    sceneTitle: 'The Boardroom',
-    previewText: 'LOGAN: If I die, none of you are ready.\nKENDALL: Dad, you\'re not going to—\nLOGAN: I\'m not asking for reassurance. I\'m stating a fact.\n',
-    trendingScore: 95,
-  },
-  {
-    title: 'Almost Famous',
-    author: 'Cameron Crowe',
-    pageCount: 162,
-    thumbnailUrl: 'https://picsum.photos/seed/almostfamous/300/400',
-    category: 'Film',
-    genre: 'Drama',
-    length: 'Long',
-    era: 'Contemporary',
-    durationLabel: '2h 02min',
-    description: 'A 15-year-old aspiring music journalist is assigned by Rolling Stone magazine to follow an up-and-coming rock band.',
-    sceneId: 'almostfamous-bus',
-    sceneTitle: 'On the Bus',
-    previewText: 'PENNY: I\'m always home. I\'m uncool.\nWILLIAM: I always knew you were cool.\nPENNY: That\'s the first kind thing anyone\'s said to me in days.\n',
-    trendingScore: 86,
-  },
-  {
-    title: 'Ladybird',
-    author: 'Greta Gerwig',
-    pageCount: 93,
-    thumbnailUrl: 'https://picsum.photos/seed/ladybird/300/400',
-    category: 'Film',
-    genre: 'Drama',
-    length: 'Medium',
-    era: 'Contemporary',
-    durationLabel: '1h 34min',
-    description: 'A young woman coming of age in early-2000s Sacramento deals with family, romance, and finding her identity.',
-    sceneId: 'ladybird-car',
-    sceneTitle: 'The Car Ride',
-    previewText: 'LADYBIRD: I want to go where culture is, like New York, or at least Connecticut or New Hampshire.\nMARION: You couldn\'t get into those schools.\n',
-    trendingScore: 88,
-  },
-];
+// ---------------------------------------------------------------------------
+// Deterministic fallback helpers
+// ---------------------------------------------------------------------------
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+/** Normalise "Last, First" → "First Last" for display */
+function displayAuthor(raw: string): string {
+  const parts = raw.split(',').map((p) => p.trim());
+  if (parts.length === 2) return `${parts[1]} ${parts[0]}`;
+  return raw;
+}
+
+/** Derive length bucket from page count */
+function lengthLabel(pageCount: number): string {
+  if (pageCount <= 70) return 'Short';
+  if (pageCount <= 110) return 'Medium';
+  return 'Long';
+}
+
+/** Estimate runtime: ~1 min per page on stage (industry rule of thumb) */
+function durationLabel(pageCount: number): string {
+  const totalMin = pageCount;
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h === 0) return `${m}min`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}min`;
+}
+
+/** Deterministic trending score in [50, 99] based on title hash */
+function trendingScore(title: string): number {
+  let hash = 0;
+  for (let i = 0; i < title.length; i++) {
+    hash = (hash * 31 + title.charCodeAt(i)) & 0xfffffff;
+  }
+  return 50 + (hash % 50);
+}
+
+/** Short description from metadata */
+function description(title: string, author: string, genre: string, era: string): string {
+  return `${title} is a ${era} ${genre.toLowerCase()} by ${author}. Text sourced from Project Gutenberg (public domain in the U.S.).`;
+}
+
+/** First scene id / title fallback */
+function sceneId(title: string): string {
+  return `${slugify(title)}-act1-sc1`;
+}
+
+function sceneTitle(sceneCount: number): string {
+  return sceneCount > 1 ? 'Act 1, Scene 1' : 'Scene 1';
+}
+
+/** Very short preview text — generic opening stage direction */
+function previewText(title: string, author: string): string {
+  return `[Opening of ${title} by ${author}]\n[Stage direction: Scene opens.]\n`;
+}
+
+// ---------------------------------------------------------------------------
+// Build seed records
+// ---------------------------------------------------------------------------
+
+const scripts = provenanceData.scripts.map((s) => {
+  const author = displayAuthor(s.author);
+  return {
+    title: s.title,
+    author,
+    pageCount: s.pageCount,
+    sceneCount: s.sceneCount,
+    thumbnailUrl: `https://picsum.photos/seed/${slugify(s.title)}/300/400`,
+    category: s.category,
+    genre: s.genre,
+    length: lengthLabel(s.pageCount),
+    era: s.era,
+    durationLabel: durationLabel(s.pageCount),
+    description: description(s.title, author, s.genre, s.era),
+    sceneId: sceneId(s.title),
+    sceneTitle: sceneTitle(s.sceneCount),
+    previewText: previewText(s.title, author),
+    trendingScore: trendingScore(s.title),
+    sourceName: s.sourceName,
+    sourceUrl: s.sourceUrl,
+    verificationNote: s.verificationNote,
+  };
+});
+
+// ---------------------------------------------------------------------------
+// Seed
+// ---------------------------------------------------------------------------
 
 async function main() {
-  console.log('Seeding scripts...');
+  console.log('Seeding public-domain scripts from Project Gutenberg…');
 
   await prisma.script.deleteMany();
 
@@ -413,7 +106,7 @@ async function main() {
     await prisma.script.create({ data: script });
   }
 
-  console.log(`Seeded ${scripts.length} scripts.`);
+  console.log(`Seeded ${scripts.length} verified public-domain scripts.`);
 }
 
 main()
