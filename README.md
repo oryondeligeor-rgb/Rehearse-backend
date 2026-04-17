@@ -15,7 +15,7 @@ npm run db:seed               # populate sample scripts
 npm run dev                   # start dev server with hot-reload
 ```
 
-Server starts on `http://localhost:3000` (or `PORT` from `.env`).
+Server starts on `http://localhost:3100` by default (or `PORT` from `.env`).
 
 ## Scripts
 

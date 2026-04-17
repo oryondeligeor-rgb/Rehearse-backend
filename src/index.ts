@@ -6,7 +6,7 @@ import scriptsRouter from './routes/scripts';
 import userRouter from './routes/user';
 
 const app = express();
-const PORT = process.env.PORT ?? 3000;
+const PORT = process.env.PORT ?? 3100;
 
 app.use(cors());
 app.use(express.json());
