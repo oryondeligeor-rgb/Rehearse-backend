@@ -61,6 +61,14 @@ model Script {
   sourceName       String   @default("")
   sourceUrl        String   @default("")
   verificationNote String   @default("")
+  // Cloud-stored asset (populated by scripts:import-assets)
+  assetUrl         String?  // full public URL of the stored object
+  assetObjectKey   String?  // bucket object key, e.g. "scripts/1513.txt"
+  assetFormat      String?  // "plain-text"
+  assetMimeType    String?  // "text/plain; charset=utf-8"
+  assetByteSize    Int?     // byte size of uploaded content
+  assetSourceUrl   String?  // Gutenberg text URL used for download
+  assetValidatedAt DateTime? // timestamp of last successful validate+upload
   createdAt        DateTime @default(now())
 
   savedBy SavedScript[]

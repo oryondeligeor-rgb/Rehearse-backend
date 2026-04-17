@@ -28,6 +28,8 @@ Server starts on `http://localhost:3100` by default (or `PORT` from `.env`).
 | `npm run db:migrate` | Run migrations (creates DB if needed) |
 | `npm run db:seed` | Seed 50 verified public-domain scripts |
 | `npm run db:reset` | Drop + recreate DB and re-run migrations |
+| `npm run scripts:import-assets` | Upload plain-text assets to cloud storage (requires `STORAGE_*` env vars) |
+| `npm run scripts:import-assets:dry-run` | Fetch + validate all Gutenberg texts without uploading |
 
 ## API
 
@@ -83,4 +85,56 @@ is stored in every `Script` row via the `sourceName`, `sourceUrl`, and
 
 ## Environment variables
 
-See `.env.example`.
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `DATABASE_URL` | yes | `file:./dev.db` | Prisma database URL |
+| `JWT_ACCESS_SECRET` | yes | — | Secret for signing access tokens |
+| `JWT_REFRESH_SECRET` | yes | — | Secret for signing refresh tokens |
+| `JWT_ACCESS_EXPIRES_IN` | no | `15m` | Access token lifetime |
+| `JWT_REFRESH_EXPIRES_IN` | no | `30d` | Refresh token lifetime |
+| `PORT` | no | `3100` | HTTP port |
+| `STORAGE_BUCKET` | for upload | — | S3-compatible bucket name |
+| `STORAGE_REGION` | for upload | `auto` | Bucket region (`auto` works for Cloudflare R2) |
+| `STORAGE_ACCESS_KEY_ID` | for upload | — | S3 access key ID |
+| `STORAGE_SECRET_ACCESS_KEY` | for upload | — | S3 secret access key |
+| `STORAGE_ENDPOINT` | no | — | Custom S3 endpoint (R2, B2, MinIO). Omit for native AWS S3. |
+| `STORAGE_PUBLIC_BASE_URL` | no | — | CDN or custom domain prefix for public asset URLs |
+
+See `.env.example` for provider-specific examples (Cloudflare R2, Backblaze B2, MinIO).
+
+## Cloud asset pipeline (task 70)
+
+Each pre-loaded script has seven asset metadata fields on the `Script` model:
+
+| Field | Description |
+|---|---|
+| `assetUrl` | Full public URL of the stored plain-text file |
+| `assetObjectKey` | Bucket key, e.g. `scripts/gutenberg-1513.txt` |
+| `assetFormat` | `"plain-text"` |
+| `assetMimeType` | `"text/plain; charset=utf-8"` |
+| `assetByteSize` | Byte size of uploaded content |
+| `assetSourceUrl` | Gutenberg cache URL used for download |
+| `assetValidatedAt` | Timestamp of last successful validate + upload |
+
+### Running the pipeline
+
+```bash
+# 1. Validate content without uploading (works with no cloud credentials)
+npm run scripts:import-assets:dry-run
+
+# 2. Live upload (requires STORAGE_* vars in .env)
+npm run scripts:import-assets
+
+# 3. Re-process scripts that were already uploaded
+npx tsx scripts/import-assets.ts --force
+```
+
+The script fetches each play's plain text from `https://www.gutenberg.org/cache/epub/<id>/pg<id>.txt`,
+validates that the response is non-empty plain text (≥ 500 bytes, not HTML),
+then uploads to `scripts/gutenberg-<id>.txt` in the configured bucket.
+
+### Remaining blocker
+
+Cloud uploads require provider credentials. Until `STORAGE_BUCKET`,
+`STORAGE_ACCESS_KEY_ID`, and `STORAGE_SECRET_ACCESS_KEY` are set in `.env`,
+running without `--dry-run` exits with a clear error listing the missing vars.
