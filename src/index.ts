@@ -4,6 +4,7 @@ import cors from 'cors';
 import authRouter from './routes/auth';
 import scriptsRouter from './routes/scripts';
 import userRouter from './routes/user';
+import uploadRouter from './routes/upload';
 
 const app = express();
 const PORT = process.env.PORT ?? 3100;
@@ -18,6 +19,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/scripts', scriptsRouter);
 app.use('/api/user', userRouter);
+app.use('/api/scripts/upload', uploadRouter);
 
 app.use((_req, res) => {
   res.status(404).json({ message: 'Not found' });

@@ -13,12 +13,14 @@ import { ParsedScript } from './types';
 
 export async function parsePdf(buffer: Buffer): Promise<ParsedScript> {
   let text: string;
+  let pageCount: number | undefined;
   let parser: PDFParse | null = null;
 
   try {
     parser = new PDFParse({ data: buffer });
     const data = await parser.getText();
     text = data.text;
+    pageCount = typeof data.total === 'number' ? data.total : undefined;
   } catch (err) {
     return {
       scenes: [],
@@ -32,5 +34,6 @@ export async function parsePdf(buffer: Buffer): Promise<ParsedScript> {
 
   const result = parseFountain(text);
   result.warnings.unshift('PDF parsed via text extraction; structure is best-effort.');
+  result.pageCount = pageCount;
   return result;
 }
