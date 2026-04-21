@@ -71,7 +71,47 @@ model Script {
   assetValidatedAt DateTime? // timestamp of last successful validate+upload
   createdAt        DateTime @default(now())
 
-  savedBy SavedScript[]
+  savedBy    SavedScript[]
+  characters ScriptCharacter[]
+  scenes     ScriptScene[]
+}
+
+// Normalized parsed-script data (populated by the script-store persistence layer)
+
+model ScriptCharacter {
+  id       String @id @default(cuid())
+  scriptId String
+  name     String
+
+  script Script @relation(fields: [scriptId], references: [id], onDelete: Cascade)
+
+  @@unique([scriptId, name])
+}
+
+model ScriptScene {
+  id       String  @id @default(cuid())
+  scriptId String
+  index    Int     // zero-based position in the script
+  heading  String  // raw heading text, e.g. "INT. COFFEE SHOP - DAY"
+  title    String? // AI-generated short title; null until extraction runs
+
+  script Script       @relation(fields: [scriptId], references: [id], onDelete: Cascade)
+  lines  ScriptLine[]
+
+  @@unique([scriptId, index])
+}
+
+model ScriptLine {
+  id        String  @id @default(cuid())
+  sceneId   String
+  lineIndex Int     // zero-based position within the scene
+  type      String  // dialogue | action | character | parenthetical | transition | lyrics | other
+  text      String
+  character String? // set for dialogue and parenthetical lines
+
+  scene ScriptScene @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+
+  @@index([sceneId])
 }
 
 model SavedScript {
