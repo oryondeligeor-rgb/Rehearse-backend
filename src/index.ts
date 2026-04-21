@@ -5,6 +5,7 @@ import authRouter from './routes/auth';
 import scriptsRouter from './routes/scripts';
 import userRouter from './routes/user';
 import uploadRouter from './routes/upload';
+import googleDriveRouter from './routes/googleDrive';
 
 const app = express();
 const PORT = process.env.PORT ?? 3100;
@@ -20,6 +21,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/scripts', scriptsRouter);
 app.use('/api/user', userRouter);
 app.use('/api/scripts/upload', uploadRouter);
+app.use('/api/google-drive', googleDriveRouter);
 
 app.use((_req, res) => {
   res.status(404).json({ message: 'Not found' });

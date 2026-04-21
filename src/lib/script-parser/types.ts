@@ -33,4 +33,6 @@ export interface ParsedScript {
   lines: ParsedLine[];
   /** Non-fatal issues encountered during parsing */
   warnings: string[];
+  /** Physical page count — available for PDFs; undefined for text formats */
+  pageCount?: number;
 }
