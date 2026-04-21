@@ -93,6 +93,8 @@ is stored in every `Script` row via the `sourceName`, `sourceUrl`, and
 | `JWT_ACCESS_EXPIRES_IN` | no | `15m` | Access token lifetime |
 | `JWT_REFRESH_EXPIRES_IN` | no | `30d` | Refresh token lifetime |
 | `PORT` | no | `3100` | HTTP port |
+| `OPENAI_API_KEY` | for AI extraction | — | OpenAI API key used for character + scene-title extraction |
+| `OPENAI_SCRIPT_EXTRACTION_MODEL` | no | `gpt-4o-mini` | Model used for task-80 script extraction |
 | `STORAGE_BUCKET` | for upload | — | S3-compatible bucket name |
 | `STORAGE_REGION` | for upload | `auto` | Bucket region (`auto` works for Cloudflare R2) |
 | `STORAGE_ACCESS_KEY_ID` | for upload | — | S3 access key ID |
@@ -101,6 +103,24 @@ is stored in every `Script` row via the `sourceName`, `sourceUrl`, and
 | `STORAGE_PUBLIC_BASE_URL` | no | — | CDN or custom domain prefix for public asset URLs |
 
 See `.env.example` for provider-specific examples (Cloudflare R2, Backblaze B2, MinIO).
+
+## AI extraction pipeline (task 80)
+
+The backend now includes an `ai-extraction` library that takes the parsed script
+output from task 79 and asks OpenAI to produce:
+
+- a deduplicated list of speaking characters
+- a scene list with 2 to 5 word titles
+- chunk-aware extraction for scripts larger than ~50k tokens, using overlapping context windows
+
+Current implementation lives under:
+
+- `src/lib/ai-extraction/index.ts`
+- `src/lib/ai-extraction/serializer.ts`
+- `src/lib/ai-extraction/types.ts`
+
+This is the reusable extraction layer. Later upload tasks still need to wire it
+into the actual upload/import route flow.
 
 ## Cloud asset pipeline (task 70)
 
