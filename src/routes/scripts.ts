@@ -96,4 +96,47 @@ router.get('/trending', optionalAuth, async (req: AuthRequest, res: Response): P
   res.json({ data: scripts.map((s) => ({ ...s, isSaved: savedIds.has(s.id) })) });
 });
 
+// GET /api/scripts/:scriptId
+router.get('/:scriptId', optionalAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  const scriptId = Array.isArray(req.params.scriptId)
+    ? req.params.scriptId[0]
+    : req.params.scriptId;
+
+  if (!scriptId) {
+    res.status(400).json({ message: 'scriptId is required' });
+    return;
+  }
+
+  const script = await prisma.script.findUnique({
+    where: { id: scriptId },
+  });
+
+  if (!script) {
+    res.status(404).json({ message: 'Script not found' });
+    return;
+  }
+
+  const [characterCount, parsedSceneCount, isSaved] = await Promise.all([
+    prisma.scriptCharacter.count({ where: { scriptId } }),
+    prisma.scriptScene.count({ where: { scriptId } }),
+    req.user
+      ? prisma.savedScript.findUnique({
+          where: {
+            userId_scriptId: {
+              userId: req.user.userId,
+              scriptId,
+            },
+          },
+        })
+      : Promise.resolve(null),
+  ]);
+
+  res.json({
+    ...script,
+    isSaved: Boolean(isSaved),
+    characterCount,
+    sceneCount: parsedSceneCount || script.sceneCount,
+  });
+});
+
 export default router;
