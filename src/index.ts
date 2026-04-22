@@ -6,6 +6,7 @@ import scriptsRouter from './routes/scripts';
 import userRouter from './routes/user';
 import uploadRouter from './routes/upload';
 import googleDriveRouter from './routes/googleDrive';
+import rehearsalRouter from './routes/rehearsal';
 
 const app = express();
 const PORT = process.env.PORT ?? 3100;
@@ -21,6 +22,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/scripts', scriptsRouter);
 app.use('/api/user', userRouter);
 app.use('/api/scripts/upload', uploadRouter);
+app.use('/api/rehearsal', rehearsalRouter);
 app.use('/api/google-drive', googleDriveRouter);
 
 app.use((_req, res) => {
