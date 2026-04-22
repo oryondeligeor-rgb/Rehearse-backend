@@ -319,17 +319,41 @@ router.get('/:scriptId/reader', optionalAuth, async (req: AuthRequest, res: Resp
       .map(line => ({
         id: line.id,
         sceneIndex: scene.index + 1,
-        sceneHeading: scene.title ?? scene.heading,
-        speaker: line.character,
+        sceneHeading:
+          scene.title ?? scene.heading ?? `Scene ${scene.index + 1}`,
+        speaker: line.character ?? 'Unknown',
         text: line.text,
       })),
   );
+
+  const lineCounts = new Map<string, number>();
+
+  dialogue.forEach(line => {
+    lineCounts.set(line.speaker, (lineCounts.get(line.speaker) ?? 0) + 1);
+  });
+
+  const topSpeakers = [...lineCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([speaker]) => speaker);
+  const openingScene = scenes[0]?.title ?? scenes[0]?.heading ?? 'the opening scene';
+  const openingLine = dialogue[0];
+  const summaryParts = [
+    `${script.title} opens in ${openingScene}.`,
+    topSpeakers.length
+      ? `${topSpeakers.join(', ')} drive the main speaking beats across ${scenes.length} scenes.`
+      : `The script spans ${scenes.length} scenes.`,
+    openingLine
+      ? `${openingLine.speaker} opens with: "${openingLine.text.slice(0, 140)}${openingLine.text.length > 140 ? '…' : ''}"`
+      : null,
+  ].filter(Boolean);
 
   res.json({
     scriptId: script.id,
     title: script.title,
     author: script.author,
     characters: characters.map(character => character.name),
+    summary: summaryParts.join(' '),
     fullText,
     dialogue,
     scenes: scenes.map(scene => ({
