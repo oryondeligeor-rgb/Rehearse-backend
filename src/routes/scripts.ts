@@ -96,6 +96,72 @@ router.get('/trending', optionalAuth, async (req: AuthRequest, res: Response): P
   res.json({ data: scripts.map((s) => ({ ...s, isSaved: savedIds.has(s.id) })) });
 });
 
+// GET /api/scripts/:scriptId/characters
+router.get('/:scriptId/characters', optionalAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  const scriptId = Array.isArray(req.params.scriptId)
+    ? req.params.scriptId[0]
+    : req.params.scriptId;
+
+  if (!scriptId) {
+    res.status(400).json({ message: 'scriptId is required' });
+    return;
+  }
+
+  const script = await prisma.script.findUnique({
+    where: { id: scriptId },
+    select: { id: true },
+  });
+
+  if (!script) {
+    res.status(404).json({ message: 'Script not found' });
+    return;
+  }
+
+  const [characters, scenes] = await Promise.all([
+    prisma.scriptCharacter.findMany({
+      where: { scriptId },
+      orderBy: { name: 'asc' },
+      select: { name: true },
+    }),
+    prisma.scriptScene.findMany({
+      where: { scriptId },
+      orderBy: { index: 'asc' },
+      select: {
+        lines: {
+          where: {
+            type: 'dialogue',
+            character: { not: null },
+          },
+          select: {
+            character: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  const lineCounts = new Map<string, number>();
+
+  scenes.forEach(scene => {
+    scene.lines.forEach(line => {
+      if (!line.character) {
+        return;
+      }
+
+      lineCounts.set(line.character, (lineCounts.get(line.character) ?? 0) + 1);
+    });
+  });
+
+  const data = characters
+    .map(character => ({
+      name: character.name,
+      lineCount: lineCounts.get(character.name) ?? 0,
+    }))
+    .sort((a, b) => b.lineCount - a.lineCount || a.name.localeCompare(b.name));
+
+  res.json({ data });
+});
+
 // GET /api/scripts/:scriptId
 router.get('/:scriptId', optionalAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   const scriptId = Array.isArray(req.params.scriptId)
