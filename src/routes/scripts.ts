@@ -249,6 +249,99 @@ router.get('/:scriptId/characters', optionalAuth, async (req: AuthRequest, res: 
   res.json({ data });
 });
 
+// GET /api/scripts/:scriptId/reader
+router.get('/:scriptId/reader', optionalAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  const scriptId = Array.isArray(req.params.scriptId)
+    ? req.params.scriptId[0]
+    : req.params.scriptId;
+
+  if (!scriptId) {
+    res.status(400).json({ message: 'scriptId is required' });
+    return;
+  }
+
+  const script = await prisma.script.findUnique({
+    where: { id: scriptId },
+    select: { id: true, title: true, author: true },
+  });
+
+  if (!script) {
+    res.status(404).json({ message: 'Script not found' });
+    return;
+  }
+
+  const [characters, scenes] = await Promise.all([
+    prisma.scriptCharacter.findMany({
+      where: { scriptId },
+      orderBy: { name: 'asc' },
+      select: { name: true },
+    }),
+    prisma.scriptScene.findMany({
+      where: { scriptId },
+      orderBy: { index: 'asc' },
+      select: {
+        id: true,
+        index: true,
+        heading: true,
+        title: true,
+        lines: {
+          orderBy: { lineIndex: 'asc' },
+          select: {
+            id: true,
+            lineIndex: true,
+            type: true,
+            text: true,
+            character: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  const fullText = scenes
+    .flatMap(scene => {
+      const sceneHeading = scene.title ?? scene.heading;
+      const content = scene.lines.map(line => {
+        if (line.character) {
+          return `${line.character}\n${line.text}`;
+        }
+
+        return line.text;
+      });
+
+      return [sceneHeading, ...content].filter(Boolean);
+    })
+    .join('\n\n');
+
+  const dialogue = scenes.flatMap(scene =>
+    scene.lines
+      .filter(line => line.type === 'dialogue' && line.character)
+      .map(line => ({
+        id: line.id,
+        sceneIndex: scene.index + 1,
+        sceneHeading: scene.title ?? scene.heading,
+        speaker: line.character,
+        text: line.text,
+      })),
+  );
+
+  res.json({
+    scriptId: script.id,
+    title: script.title,
+    author: script.author,
+    characters: characters.map(character => character.name),
+    fullText,
+    dialogue,
+    scenes: scenes.map(scene => ({
+      id: scene.id,
+      index: scene.index,
+      heading: scene.heading,
+      title: scene.title,
+      lines: scene.lines,
+    })),
+  });
+});
+
 // GET /api/scripts/:scriptId
 router.get('/:scriptId', optionalAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   const scriptId = Array.isArray(req.params.scriptId)
