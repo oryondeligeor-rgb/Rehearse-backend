@@ -96,6 +96,93 @@ router.get('/trending', optionalAuth, async (req: AuthRequest, res: Response): P
   res.json({ data: scripts.map((s) => ({ ...s, isSaved: savedIds.has(s.id) })) });
 });
 
+// GET /api/scripts/:scriptId/characters/:characterName
+router.get('/:scriptId/characters/:characterName', optionalAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  const scriptId = Array.isArray(req.params.scriptId)
+    ? req.params.scriptId[0]
+    : req.params.scriptId;
+  const characterName = Array.isArray(req.params.characterName)
+    ? req.params.characterName[0]
+    : req.params.characterName;
+
+  if (!scriptId || !characterName) {
+    res.status(400).json({ message: 'scriptId and characterName are required' });
+    return;
+  }
+
+  const script = await prisma.script.findUnique({
+    where: { id: scriptId },
+    select: { id: true, title: true },
+  });
+
+  if (!script) {
+    res.status(404).json({ message: 'Script not found' });
+    return;
+  }
+
+  const scenes = await prisma.scriptScene.findMany({
+    where: {
+      scriptId,
+      lines: {
+        some: {
+          type: 'dialogue',
+          character: characterName,
+        },
+      },
+    },
+    orderBy: { index: 'asc' },
+    select: {
+      index: true,
+      heading: true,
+      title: true,
+      lines: {
+        where: {
+          type: 'dialogue',
+          character: characterName,
+        },
+        orderBy: { lineIndex: 'asc' },
+        select: {
+          text: true,
+        },
+      },
+    },
+  });
+
+  if (!scenes.length) {
+    res.status(404).json({ message: 'Character not found in this script' });
+    return;
+  }
+
+  const previewLines = scenes
+    .flatMap(scene =>
+      scene.lines.map((line, index) => ({
+        sceneIndex: scene.index + 1,
+        sceneHeading: scene.title ?? scene.heading,
+        lineIndex: index + 1,
+        text: line.text,
+      })),
+    )
+    .slice(0, 6);
+
+  const lineCount = scenes.reduce(
+    (total, scene) => total + scene.lines.length,
+    0,
+  );
+  const firstAppearance = scenes[0];
+
+  res.json({
+    name: characterName,
+    scriptTitle: script.title,
+    lineCount,
+    sceneCount: scenes.length,
+    firstAppearance: {
+      sceneIndex: firstAppearance.index + 1,
+      sceneHeading: firstAppearance.title ?? firstAppearance.heading,
+    },
+    previewLines,
+  });
+});
+
 // GET /api/scripts/:scriptId/characters
 router.get('/:scriptId/characters', optionalAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   const scriptId = Array.isArray(req.params.scriptId)
